@@ -2,9 +2,9 @@ export default function decorate(block) {
   const slides = [...block.children];
   let currentIndex = 0;
 
-  // ---------------------------------------
-  // 1. Declare all functions first (FIX)
-  // ---------------------------------------
+  // ---------------------------------------------------------
+  // 1. Declare helper functions that DO NOT use 'dots' yet
+  // ---------------------------------------------------------
 
   const createDots = (count) => {
     const wrapper = document.createElement('div');
@@ -25,6 +25,16 @@ export default function decorate(block) {
     return btn;
   };
 
+  // ---------------------------------------------------------
+  // 2. Create dots FIRST before updateCarousel can use it
+  // ---------------------------------------------------------
+
+  const dots = createDots(slides.length);
+  block.appendChild(dots);
+
+  // ---------------------------------------------------------
+  // 3. Now define updateCarousel (dots already exists)
+  // ---------------------------------------------------------
   const updateCarousel = () => {
     slides.forEach((slide, index) => {
       slide.style.display = index === currentIndex ? 'block' : 'none';
@@ -35,23 +45,18 @@ export default function decorate(block) {
     });
   };
 
-  // --------------------------------------------------------------------
-  // 2. Now use them AFTER declaration → ESLint no-use-before-define FIXED
-  // --------------------------------------------------------------------
-
-  const dots = createDots(slides.length);
-  block.appendChild(dots);
-
+  // ---------------------------------------------------------
+  // 4. Create Buttons
+  // ---------------------------------------------------------
   const prevBtn = createButton('prev');
   const nextBtn = createButton('next');
   block.append(prevBtn, nextBtn);
 
   updateCarousel();
 
-  // --------------------------------------------------------------------
-  // 3. Events
-  // --------------------------------------------------------------------
-
+  // ---------------------------------------------------------
+  // 5. Events
+  // ---------------------------------------------------------
   prevBtn.addEventListener('click', () => {
     currentIndex = (currentIndex - 1 + slides.length) % slides.length;
     updateCarousel();
