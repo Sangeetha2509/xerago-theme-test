@@ -1,48 +1,76 @@
 export default function decorate(block) {
-  const slidesData = [...block.querySelectorAll('img')];
+  const slides = [...block.children];
+  let currentIndex = 0;
 
-  const slidesWrapper = document.createElement('div');
-  slidesWrapper.className = 'carousel-slides';
+  // ---------------------------------------------------------
+  // 1. Declare helper functions that DO NOT use 'dots' yet
+  // ---------------------------------------------------------
 
-  slidesData.forEach(slide => {
-    const div = document.createElement('div');
-    div.className = 'carousel-slide';
-    div.append(slide);
-    slidesWrapper.append(div);
+  const createDots = (count) => {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'carousel-dots';
+
+    for (let i = 0; i < count; i += 1) {
+      const dot = document.createElement('span');
+      dot.className = 'dot';
+      wrapper.appendChild(dot);
+    }
+    return wrapper;
+  };
+
+  const createButton = (type) => {
+    const btn = document.createElement('button');
+    btn.className = `carousel-btn ${type}`;
+    btn.textContent = type === 'prev' ? '‹' : '›';
+    return btn;
+  };
+
+  // ---------------------------------------------------------
+  // 2. Create dots FIRST before updateCarousel can use it
+  // ---------------------------------------------------------
+
+  const dots = createDots(slides.length);
+  block.appendChild(dots);
+
+  // ---------------------------------------------------------
+  // 3. Now define updateCarousel (dots already exists)
+  // ---------------------------------------------------------
+  const updateCarousel = () => {
+    slides.forEach((slide, index) => {
+      slide.style.display = index === currentIndex ? 'block' : 'none';
+    });
+
+    [...dots.children].forEach((dot, index) => {
+      dot.classList.toggle('active', index === currentIndex);
+    });
+  };
+
+  // ---------------------------------------------------------
+  // 4. Create Buttons
+  // ---------------------------------------------------------
+  const prevBtn = createButton('prev');
+  const nextBtn = createButton('next');
+  block.append(prevBtn, nextBtn);
+
+  updateCarousel();
+
+  // ---------------------------------------------------------
+  // 5. Events
+  // ---------------------------------------------------------
+  prevBtn.addEventListener('click', () => {
+    currentIndex = (currentIndex - 1 + slides.length) % slides.length;
+    updateCarousel();
   });
 
-  block.innerHTML = '';
-  block.append(slidesWrapper);
+  nextBtn.addEventListener('click', () => {
+    currentIndex = (currentIndex + 1) % slides.length;
+    updateCarousel();
+  });
 
-  // Dots
-  const dots = document.createElement('div');
-  dots.className = 'carousel-dots';
-
-  slidesData.forEach((_, index) => {
-    const dot = document.createElement('div');
-    if (index === 0) dot.classList.add('active');
-    dots.append(dot);
-
+  [...dots.children].forEach((dot, index) => {
     dot.addEventListener('click', () => {
       currentIndex = index;
       updateCarousel();
     });
   });
-
-  block.append(dots);
-
-  let currentIndex = 0;
-
-  function updateCarousel() {
-    slidesWrapper.style.transform = `translateX(-${currentIndex * 100}%)`;
-    dots.querySelectorAll('div').forEach((d, i) => {
-      d.classList.toggle('active', i === currentIndex);
-    });
-  }
-
-  // Auto-slide
-  setInterval(() => {
-    currentIndex = (currentIndex + 1) % slidesData.length;
-    updateCarousel();
-  }, 4000);
 }
