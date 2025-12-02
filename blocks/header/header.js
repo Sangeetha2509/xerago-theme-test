@@ -11,7 +11,7 @@ export default function decorate(block) {
   const nav = document.createElement('div');
   nav.className = 'nav';
 
-  navItems.forEach(item => {
+  navItems.forEach((item) => {
     const link = document.createElement('a');
     link.textContent = item.textContent;
     link.href = item.querySelector('a')?.href || '#';
