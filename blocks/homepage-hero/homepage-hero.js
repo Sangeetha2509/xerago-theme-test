@@ -1,4 +1,4 @@
-// homepage-hero.js - vanilla JS carousel (autoplay, arrows, dots, swipe)
+// homepage-hero.js - production-ready vanilla JS carousel with ESLint fixes
 // Usage: decorate(block) will be called by EDS systems when the block is rendered.
 
 export default function decorate(block) {
@@ -8,7 +8,7 @@ export default function decorate(block) {
   if (!slides.length) return;
 
   // lazy set background images (desktop/mobile)
-  slides.forEach(slide => {
+  slides.forEach((slide) => {
     const bgDesktop = slide.querySelector('.hero-bg--desktop');
     const bgMobile = slide.querySelector('.hero-bg--mobile');
 
@@ -20,14 +20,14 @@ export default function decorate(block) {
       const img = new Image();
       img.src = desktopSrc;
       img.onload = () => {
-        bgDesktop.style.backgroundImage = 'url("' + desktopSrc + '")';
+        bgDesktop.style.backgroundImage = `url("${desktopSrc}")`;
       };
     }
     if (mobileSrc) {
       const img2 = new Image();
       img2.src = mobileSrc;
       img2.onload = () => {
-        bgMobile.style.backgroundImage = 'url("' + mobileSrc + '")';
+        bgMobile.style.backgroundImage = `url("${mobileSrc}")`;
       };
     }
   });
@@ -41,9 +41,9 @@ export default function decorate(block) {
   // setup dots
   const dotsContainer = block.querySelector('.hero-dots');
   const dots = [];
-  slides.forEach((s, i) => {
+  slides.forEach((slide, i) => {
     const btn = document.createElement('button');
-    btn.setAttribute('aria-label', 'Go to slide ' + (i+1));
+    btn.setAttribute('aria-label', `Go to slide ${i + 1}`);
     btn.addEventListener('click', () => {
       goTo(i);
       restartTimer();
@@ -55,41 +55,37 @@ export default function decorate(block) {
   // setup arrows
   const prevBtn = block.querySelector('.hero-nav--prev');
   const nextBtn = block.querySelector('.hero-nav--next');
-  prevBtn.addEventListener('click', () => { prev(); restartTimer(); });
-  nextBtn.addEventListener('click', () => { next(); restartTimer(); });
 
-  // show initial slide
-  function show(index) {
-    slides.forEach((s, i) => {
-      s.classList.toggle('is-active', i === index);
-    });
-    dots.forEach((d, i) => d.classList.toggle('is-active', i === index));
-    current = index;
-  }
-
-  function goTo(index) {
+  const goTo = (indexParam) => {
+    let index = indexParam;
     if (index < 0) index = total - 1;
     if (index >= total) index = 0;
-    show(index);
-  }
+    slides.forEach((s, i) => {
+      s.classList.toggle('is-active', i === index);
+      dots[i].classList.toggle('is-active', i === index);
+    });
+    current = index;
+  };
 
-  function next() { goTo(current + 1); }
-  function prev() { goTo(current - 1); }
+  const next = () => { goTo(current + 1); };
+  const prev = () => { goTo(current - 1); };
 
-  function startTimer() {
+  const startTimer = () => {
     if (timer) clearInterval(timer);
     timer = setInterval(next, intervalMs);
     isPlaying = true;
-  }
-  function stopTimer() {
+  };
+
+  const stopTimer = () => {
     if (timer) clearInterval(timer);
     timer = null;
     isPlaying = false;
-  }
-  function restartTimer() {
+  };
+
+  const restartTimer = () => {
     stopTimer();
     startTimer();
-  }
+  };
 
   // pause on hover (desktop)
   block.addEventListener('mouseenter', stopTimer);
@@ -101,6 +97,7 @@ export default function decorate(block) {
     touchStartX = e.touches[0].clientX;
     stopTimer();
   }, { passive: true });
+
   block.addEventListener('touchend', (e) => {
     if (touchStartX === null) return;
     const diff = e.changedTouches[0].clientX - touchStartX;
@@ -118,7 +115,7 @@ export default function decorate(block) {
   });
 
   // initialize
-  show(0);
+  goTo(0);
   startTimer();
 
   // make sure block is focusable for keyboard interactions
