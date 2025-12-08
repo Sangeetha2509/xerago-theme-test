@@ -1,0 +1,25 @@
+<section class="homepage-hero block" aria-label="Homepage hero carousel">
+  <!-- EDS will replicate .hero-slide for each row in your CSV/Doc -->
+  <div class="hero-track">
+    <div class="hero-slide" data-slide-index="${slideOrder}">
+      <div class="hero-bg hero-bg--desktop" data-bg-desktop="${bgDesktop}"></div>
+      <div class="hero-bg hero-bg--mobile" data-bg-mobile="${bgMobile}"></div>
+      <div class="hero-overlay"></div>
+      <div class="hero-content container">
+        <div class="hero-copy">
+          <h1 class="hero-title">${title}</h1>
+          <p class="hero-subtitle">${subtitle}</p>
+          <a class="hero-cta" href="${ctaLink}">${ctaLabel}</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controls (rendered once per block) -->
+  <button class="hero-nav hero-nav--prev" aria-label="Previous slide" type="button">‹</button>
+  <button class="hero-nav hero-nav--next" aria-label="Next slide" type="button">›</button>
+
+  <div class="hero-dots" role="tablist" aria-label="Hero slides">
+    <!-- dots inserted by JS -->
+  </div>
+</section>

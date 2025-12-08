@@ -1,0 +1,4 @@
+block,slideOrder,title,subtitle,ctaLabel,ctaLink,bgDesktop,bgMobile
+homepage-hero,1,Stay connected. Pay less.,Get unlimited UK minutes & 5GB data for under £10.,Order SIM,/order-sim,/images/hero1-desktop.jpg,/images/hero1-mobile.jpg
+homepage-hero,2,Travel the world,Roam across 40+ countries with affordable rates.,Buy international plan,/international,/images/hero2-desktop.jpg,/images/hero2-mobile.jpg
+homepage-hero,3,Top-up in seconds,Easy recharge options available online and in-store.,Recharge now,/recharge,/images/hero3-desktop.jpg,/images/hero3-mobile.jpg
