@@ -10,17 +10,14 @@ export default function decorate(block) {
     linkUrl: cols[4]?.textContent?.trim() || '#',
   }));
 
-  // Build final HTML structure
   const wrapper = document.createElement('div');
   wrapper.classList.add('whylyca-wrapper');
 
-  // Heading
   const heading = document.createElement('div');
   heading.classList.add('whylyca-heading');
   heading.innerHTML = '<h2>Why Lyca?</h2>';
   wrapper.appendChild(heading);
 
-  // Grid container
   const grid = document.createElement('div');
   grid.classList.add('whylyca-grid');
 
@@ -52,7 +49,6 @@ export default function decorate(block) {
 
   wrapper.appendChild(grid);
 
-  // Replace original block content
   block.innerHTML = '';
   block.appendChild(wrapper);
 
