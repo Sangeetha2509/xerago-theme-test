@@ -1,5 +1,7 @@
 // homepage-hero.js - Fully ESLint clean
 
+import { createOptimizedPicture } from '../../scripts/aem.js';
+
 // Helper function to create a slide element
 function createSlide(slideOrder, title, subtitle, ctaLabel, ctaLink, bgDesktop, bgMobile) {
   const slide = document.createElement('div');
