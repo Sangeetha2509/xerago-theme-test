@@ -1,5 +1,5 @@
 export default function decorate(block) {
-  // Convert Google Doc table rows → structured data
+
   const rows = [...block.children].map((row) => [...row.children]);
 
   const items = rows.map((cols) => ({
