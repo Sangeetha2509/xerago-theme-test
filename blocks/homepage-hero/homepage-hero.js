@@ -1,12 +1,10 @@
-// homepage-hero.js - ESLint clean version
-
 export default function decorate(block) {
   if (!block) return;
 
   const slides = Array.from(block.querySelectorAll('.hero-slide'));
   if (!slides.length) return;
 
-  // lazy background load
+  // Lazy background loading
   slides.forEach((slide) => {
     const bgDesktop = slide.querySelector('.hero-bg--desktop');
     const bgMobile = slide.querySelector('.hero-bg--mobile');
@@ -36,7 +34,12 @@ export default function decorate(block) {
   const intervalMs = 5000;
   let timer = null;
 
-  // ---- functions declared BEFORE they are used ----
+  // ---------------------------------------------------
+  // FIX: Declare dots BEFORE goTo() so ESLint passes
+  // ---------------------------------------------------
+
+  const dots = [];
+  const dotsContainer = block.querySelector('.hero-dots');
 
   function goTo(index) {
     let idx = index;
@@ -74,12 +77,7 @@ export default function decorate(block) {
     startTimer();
   }
 
-  // -----------------------------------------------
-
-  // dots
-  const dotsContainer = block.querySelector('.hero-dots');
-  const dots = [];
-
+  // Build dots AFTER declaring dots array
   slides.forEach((slide, i) => {
     const btn = document.createElement('button');
     btn.setAttribute('aria-label', `Go to slide ${i + 1}`);
@@ -91,10 +89,8 @@ export default function decorate(block) {
     dots.push(btn);
   });
 
-  // arrow buttons (no unused-vars)
+  // arrow buttons
   const prevBtn = block.querySelector('.hero-nav--prev');
-  const nextBtn = block.querySelector('.hero-nav--next');
-
   if (prevBtn) {
     prevBtn.addEventListener('click', () => {
       prev();
@@ -102,6 +98,7 @@ export default function decorate(block) {
     });
   }
 
+  const nextBtn = block.querySelector('.hero-nav--next');
   if (nextBtn) {
     nextBtn.addEventListener('click', () => {
       next();
@@ -109,7 +106,7 @@ export default function decorate(block) {
     });
   }
 
-  // swipe
+  // swipe support
   let touchStartX = null;
 
   block.addEventListener('touchstart', (e) => {
@@ -130,7 +127,7 @@ export default function decorate(block) {
     restartTimer();
   });
 
-  // keyboard
+  // keyboard support
   block.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowLeft') {
       prev();
