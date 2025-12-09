@@ -1,5 +1,4 @@
 export default function decorate(block) {
-
   const rows = [...block.children].map((row) => [...row.children]);
 
   const items = rows.map((cols) => ({
@@ -30,12 +29,10 @@ export default function decorate(block) {
         <p class="text-center">
           <img src="${item.img}" class="card-image" alt="${item.title}">
         </p>
-
         <p class="text-center card-description">
           <strong>${item.title}</strong><br>
           ${item.description}
         </p>
-
         <p class="text-center">
           <a class="read-more-link" href="${item.linkUrl}">
             <span>${item.linkText}</span>
@@ -52,7 +49,6 @@ export default function decorate(block) {
   block.innerHTML = '';
   block.appendChild(wrapper);
 
-  // ---- Animations (from your JS) ----
   const cards = block.querySelectorAll('.whylyca-card');
 
   cards.forEach((card) => {
