@@ -1,149 +1,79 @@
-// homepage-hero.js - Fully ESLint clean
-
 export default function decorate(block) {
   if (!block) return;
 
-  const slides = Array.from(block.querySelectorAll('.hero-slide'));
-  if (!slides.length) return;
+  // Extract rows from the default EDS table structure
+  const rows = [...block.children];
 
-  // lazy background load
-  slides.forEach((slide) => {
-    const bgDesktop = slide.querySelector('.hero-bg--desktop');
-    const bgMobile = slide.querySelector('.hero-bg--mobile');
+  // Build proper hero DOM wrapper
+  block.innerHTML = `
+    <div class="hero-wrapper">
+      <div class="hero-slides"></div>
+      <div class="hero-nav">
+        <button class="hero-nav--prev" aria-label="Previous">&#10094;</button>
+        <button class="hero-nav--next" aria-label="Next">&#10095;</button>
+      </div>
+      <div class="hero-dots"></div>
+    </div>
+  `;
 
-    const desktopSrc = bgDesktop?.dataset.bgDesktop;
-    const mobileSrc = bgMobile?.dataset.bgMobile;
+  const slidesContainer = block.querySelector('.hero-slides');
+  const dotsContainer = block.querySelector('.hero-dots');
 
-    if (desktopSrc) {
-      const img = new Image();
-      img.src = desktopSrc;
-      img.onload = () => {
-        bgDesktop.style.backgroundImage = `url("${desktopSrc}")`;
-      };
-    }
+  const slides = [];
 
-    if (mobileSrc) {
-      const imgM = new Image();
-      imgM.src = mobileSrc;
-      imgM.onload = () => {
-        bgMobile.style.backgroundImage = `url("${mobileSrc}")`;
-      };
-    }
+  // Convert each Google Docs row → a proper slide
+  rows.forEach((row) => {
+    const cols = [...row.children];
+    const desktop = cols[0]?.textContent?.trim() || "";
+    const mobile = cols[1]?.textContent?.trim() || "";
+    const title = cols[2]?.textContent?.trim() || "";
+    const subtitle = cols[3]?.textContent?.trim() || "";
+
+    const slide = document.createElement('div');
+    slide.classList.add('hero-slide');
+    slide.innerHTML = `
+      <div class="hero-bg hero-bg--desktop" style="background-image:url('${desktop}')"></div>
+      <div class="hero-bg hero-bg--mobile" style="background-image:url('${mobile}')"></div>
+      <div class="hero-content">
+        <h2>${title}</h2>
+        <p>${subtitle}</p>
+      </div>
+    `;
+    slidesContainer.append(slide);
+    slides.push(slide);
   });
+
+  // Carousel logic -----------------------
 
   let current = 0;
   const total = slides.length;
-  const intervalMs = 5000;
+  const dots = [];
   let timer = null;
 
-  // 🟢 FIX: Declare dots BEFORE using inside goTo()
-  const dotsContainer = block.querySelector('.hero-dots');
-  const dots = [];
-
-  // ---- functions declared AFTER variables are available ----
-
-  function goTo(index) {
-    let idx = index;
-    if (idx < 0) idx = total - 1;
-    if (idx >= total) idx = 0;
-
-    slides.forEach((slide, i) => {
-      slide.classList.toggle('is-active', i === idx);
-      dots[i].classList.toggle('is-active', i === idx);
-    });
-
-    current = idx;
+  function goTo(n) {
+    current = (n + total) % total;
+    slides.forEach((s, i) => s.classList.toggle('is-active', i === current));
+    dots.forEach((d, i) => d.classList.toggle('is-active', i === current));
   }
 
-  function next() {
-    goTo(current + 1);
-  }
+  function next() { goTo(current + 1); }
+  function prev() { goTo(current - 1); }
 
-  function prev() {
-    goTo(current - 1);
-  }
+  function startAuto() { timer = setInterval(next, 5000); }
+  function stopAuto() { clearInterval(timer); }
 
-  function stopTimer() {
-    if (timer) clearInterval(timer);
-    timer = null;
-  }
-
-  function startTimer() {
-    stopTimer();
-    timer = setInterval(() => next(), intervalMs);
-  }
-
-  function restartTimer() {
-    stopTimer();
-    startTimer();
-  }
-
-  // create dots
-  slides.forEach((slide, i) => {
+  // dots
+  slides.forEach((_, i) => {
     const btn = document.createElement('button');
-    btn.setAttribute('aria-label', `Go to slide ${i + 1}`);
-    btn.addEventListener('click', () => {
-      goTo(i);
-      restartTimer();
-    });
+    btn.addEventListener('click', () => { goTo(i); stopAuto(); startAuto(); });
     dotsContainer.append(btn);
     dots.push(btn);
   });
 
-  // arrow buttons
-  const prevBtn = block.querySelector('.hero-nav--prev');
-  const nextBtn = block.querySelector('.hero-nav--next');
+  // navigation
+  block.querySelector('.hero-nav--prev').onclick = () => { prev(); stopAuto(); startAuto(); };
+  block.querySelector('.hero-nav--next').onclick = () => { next(); stopAuto(); startAuto(); };
 
-  if (prevBtn) {
-    prevBtn.addEventListener('click', () => {
-      prev();
-      restartTimer();
-    });
-  }
-
-  if (nextBtn) {
-    nextBtn.addEventListener('click', () => {
-      next();
-      restartTimer();
-    });
-  }
-
-  // swipe
-  let touchStartX = null;
-
-  block.addEventListener('touchstart', (e) => {
-    touchStartX = e.touches[0].clientX;
-    stopTimer();
-  });
-
-  block.addEventListener('touchend', (e) => {
-    if (touchStartX === null) return;
-    const diff = e.changedTouches[0].clientX - touchStartX;
-
-    if (Math.abs(diff) > 40) {
-      if (diff < 0) next();
-      else prev();
-    }
-
-    touchStartX = null;
-    restartTimer();
-  });
-
-  // keyboard
-  block.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowLeft') {
-      prev();
-      restartTimer();
-    }
-    if (e.key === 'ArrowRight') {
-      next();
-      restartTimer();
-    }
-  });
-
-  // init
   goTo(0);
-  startTimer();
-
-  block.tabIndex = 0;
+  startAuto();
 }
