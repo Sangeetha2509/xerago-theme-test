@@ -1,5 +1,4 @@
-// homepage-hero.js - production-ready vanilla JS carousel with ESLint fixes
-// Usage: decorate(block) will be called by EDS systems when the block is rendered.
+// homepage-hero.js - Fully ESLint clean
 
 export default function decorate(block) {
   if (!block) return;
@@ -115,15 +114,14 @@ export default function decorate(block) {
 
   if (!slides.length) return;
 
-  // lazy set background images (desktop/mobile)
+  // lazy background load
   slides.forEach((slide) => {
     const bgDesktop = slide.querySelector('.hero-bg--desktop');
     const bgMobile = slide.querySelector('.hero-bg--mobile');
 
-    const desktopSrc = bgDesktop?.getAttribute('data-bg-desktop');
-    const mobileSrc = bgMobile?.getAttribute('data-bg-mobile');
+    const desktopSrc = bgDesktop?.dataset.bgDesktop;
+    const mobileSrc = bgMobile?.dataset.bgMobile;
 
-    // choose source based on viewport; still set both to support resizing
     if (desktopSrc) {
       const img = new Image();
       img.src = desktopSrc;
@@ -131,10 +129,11 @@ export default function decorate(block) {
         bgDesktop.style.backgroundImage = `url("${desktopSrc}")`;
       };
     }
+
     if (mobileSrc) {
-      const img2 = new Image();
-      img2.src = mobileSrc;
-      img2.onload = () => {
+      const imgM = new Image();
+      imgM.src = mobileSrc;
+      imgM.onload = () => {
         bgMobile.style.backgroundImage = `url("${mobileSrc}")`;
       };
     }
@@ -144,11 +143,50 @@ export default function decorate(block) {
   const total = slides.length;
   const intervalMs = 5000;
   let timer = null;
-  let isPlaying = true;
 
-  // setup dots
+  // 🟢 FIX: Declare dots BEFORE using inside goTo()
   const dotsContainer = block.querySelector('.hero-dots');
   const dots = [];
+
+  // ---- functions declared AFTER variables are available ----
+
+  function goTo(index) {
+    let idx = index;
+    if (idx < 0) idx = total - 1;
+    if (idx >= total) idx = 0;
+
+    slides.forEach((slide, i) => {
+      slide.classList.toggle('is-active', i === idx);
+      dots[i].classList.toggle('is-active', i === idx);
+    });
+
+    current = idx;
+  }
+
+  function next() {
+    goTo(current + 1);
+  }
+
+  function prev() {
+    goTo(current - 1);
+  }
+
+  function stopTimer() {
+    if (timer) clearInterval(timer);
+    timer = null;
+  }
+
+  function startTimer() {
+    stopTimer();
+    timer = setInterval(() => next(), intervalMs);
+  }
+
+  function restartTimer() {
+    stopTimer();
+    startTimer();
+  }
+
+  // create dots
   slides.forEach((slide, i) => {
     const btn = document.createElement('button');
     btn.setAttribute('aria-label', `Go to slide ${i + 1}`);
@@ -156,76 +194,64 @@ export default function decorate(block) {
       goTo(i);
       restartTimer();
     });
-    dotsContainer.appendChild(btn);
+    dotsContainer.append(btn);
     dots.push(btn);
   });
 
-  // setup arrows
+  // arrow buttons
   const prevBtn = block.querySelector('.hero-nav--prev');
   const nextBtn = block.querySelector('.hero-nav--next');
 
-  const goTo = (indexParam) => {
-    let index = indexParam;
-    if (index < 0) index = total - 1;
-    if (index >= total) index = 0;
-    slides.forEach((s, i) => {
-      s.classList.toggle('is-active', i === index);
-      dots[i].classList.toggle('is-active', i === index);
+  if (prevBtn) {
+    prevBtn.addEventListener('click', () => {
+      prev();
+      restartTimer();
     });
-    current = index;
-  };
+  }
 
-  const next = () => { goTo(current + 1); };
-  const prev = () => { goTo(current - 1); };
+  if (nextBtn) {
+    nextBtn.addEventListener('click', () => {
+      next();
+      restartTimer();
+    });
+  }
 
-  const startTimer = () => {
-    if (timer) clearInterval(timer);
-    timer = setInterval(next, intervalMs);
-    isPlaying = true;
-  };
-
-  const stopTimer = () => {
-    if (timer) clearInterval(timer);
-    timer = null;
-    isPlaying = false;
-  };
-
-  const restartTimer = () => {
-    stopTimer();
-    startTimer();
-  };
-
-  // pause on hover (desktop)
-  block.addEventListener('mouseenter', stopTimer);
-  block.addEventListener('mouseleave', () => { if (!isPlaying) startTimer(); });
-
-  // touch / swipe support
+  // swipe
   let touchStartX = null;
+
   block.addEventListener('touchstart', (e) => {
     touchStartX = e.touches[0].clientX;
     stopTimer();
-  }, { passive: true });
+  });
 
   block.addEventListener('touchend', (e) => {
     if (touchStartX === null) return;
     const diff = e.changedTouches[0].clientX - touchStartX;
+
     if (Math.abs(diff) > 40) {
-      if (diff < 0) next(); else prev();
+      if (diff < 0) next();
+      else prev();
     }
+
     touchStartX = null;
     restartTimer();
   });
 
-  // keyboard support
+  // keyboard
   block.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowLeft') { prev(); restartTimer(); }
-    if (e.key === 'ArrowRight') { next(); restartTimer(); }
+    if (e.key === 'ArrowLeft') {
+      prev();
+      restartTimer();
+    }
+    if (e.key === 'ArrowRight') {
+      next();
+      restartTimer();
+    }
   });
 
-  // initialize
+  // init
   goTo(0);
   startTimer();
 
-  // make sure block is focusable for keyboard interactions
   block.tabIndex = 0;
 }
