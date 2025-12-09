@@ -259,11 +259,6 @@ main>.section:first-of-type {
   margin-top: 0;
 }
 
-.columns-wrapper {
-  display: flex;
-  justify-content: center;
-  gap: 57px;
-}
 
 
 @media (width >=900px) {
