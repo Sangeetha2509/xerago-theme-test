@@ -23,7 +23,6 @@ export default function decorate(block) {
   items.forEach((item) => {
     const card = document.createElement('div');
     card.classList.add('whylyca-card');
-
     card.innerHTML = `
       <div class="card-content">
         <p class="text-center">
@@ -40,7 +39,6 @@ export default function decorate(block) {
         </p>
       </div>
     `;
-
     grid.appendChild(card);
   });
 
@@ -48,7 +46,6 @@ export default function decorate(block) {
 
   block.innerHTML = '';
   block.appendChild(wrapper);
-
   const cards = block.querySelectorAll('.whylyca-card');
 
   cards.forEach((card) => {
