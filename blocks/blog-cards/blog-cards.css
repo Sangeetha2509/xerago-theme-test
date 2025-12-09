@@ -1,0 +1,74 @@
+.blog-cards > ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 2rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.blog-cards > ul > li {
+  background-color: var(--background-color);
+  border: 1px solid #e1e1e1;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); /* Subtle shadow per screenshot */
+  overflow: hidden;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  display: flex;
+  flex-direction: column;
+}
+
+.blog-cards > ul > li:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Image container */
+.blog-cards .blog-cards-card-image {
+  line-height: 0;
+  width: 100%;
+}
+
+.blog-cards .blog-cards-card-image picture,
+.blog-cards .blog-cards-card-image img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 10; /* Slightly wider than 4/3 */
+  object-fit: cover;
+}
+
+/* Body content */
+.blog-cards .blog-cards-card-body {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+/* Title styling - assuming h3, h4, or strong p */
+.blog-cards .blog-cards-card-body h3,
+.blog-cards .blog-cards-card-body h4,
+.blog-cards .blog-cards-card-body h5,
+.blog-cards .blog-cards-card-body strong {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+  font-size: 1.125rem;
+  line-height: 1.4;
+  color: var(--text-color);
+  font-weight: 700;
+}
+
+.blog-cards .blog-cards-card-body p {
+  margin: 0;
+  font-size: 1rem;
+  color: #4b4b4b;
+}
+
+/* Metadata styling */
+.blog-cards .blog-cards-card-body .blog-card-meta {
+  margin-top: auto; /* Push to bottom */
+  padding-top: 1rem;
+  font-size: 0.875rem;
+  color: #757575; /* Lighter grey */
+  font-weight: 400;
+}
