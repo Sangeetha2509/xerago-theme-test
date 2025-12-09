@@ -107,7 +107,7 @@ export default function decorate(block) {
     block.appendChild(prevBtn);
     block.appendChild(nextBtn);
     block.appendChild(dotsContainer);
-    
+
     // Get slides after creating them
     slides = Array.from(block.querySelectorAll('.hero-slide'));
   }
