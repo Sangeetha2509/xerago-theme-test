@@ -86,98 +86,178 @@ export default function decorate(block) {
     return (p ? p.textContent : cell.textContent || '').trim();
   };
 
-  // Parse table structure from Google Docs
-  // The block will have rows like: header row, then data rows
-  const rows = Array.from(block.querySelectorAll(':scope > div'));
-
-  // Skip header row (first row) and parse data rows
-  const dataRows = rows.slice(1);
-
-  // If no data rows, check if slides already exist (from .plain.html template)
+  // Check if slides already exist (from .plain.html template)
   let slides = Array.from(block.querySelectorAll('.hero-slide'));
 
-  // If no slides and no structured rows, try parsing as plain text CSV
-  if (slides.length === 0 && dataRows.length === 0) {
-    const blockText = block.textContent || '';
-    const lines = blockText.split('\n').map((line) => line.trim()).filter((line) => line);
-    if (lines.length > 1) {
-      // Parse CSV lines
-      const csvRows = lines.slice(1).map((line) => {
-        // Simple CSV parsing (handles quoted values)
-        const values = [];
-        let current = '';
-        let inQuotes = false;
-        for (let i = 0; i < line.length; i += 1) {
-          const char = line[i];
-          if (char === '"') {
-            inQuotes = !inQuotes;
-          } else if (char === ',' && !inQuotes) {
-            values.push(current.trim());
-            current = '';
-          } else {
-            current += char;
-          }
+  // If slides exist, skip parsing
+  if (slides.length > 0) {
+    // Continue with carousel setup below
+  } else {
+    // Try multiple parsing strategies
+    // Strategy 1: Direct children (most common for AEM blocks)
+    let rows = Array.from(block.children).filter((child) => child.tagName === 'DIV');
+    let dataRows = rows.slice(1); // Skip header row
+
+    // Strategy 2: If no direct children, try querySelectorAll
+    if (rows.length === 0) {
+      rows = Array.from(block.querySelectorAll(':scope > div'));
+      dataRows = rows.slice(1);
+    }
+
+    // Strategy 3: Check if content is in a table element
+    const table = block.querySelector('table');
+    if (table && rows.length === 0) {
+      const tableRows = Array.from(table.querySelectorAll('tr'));
+      if (tableRows.length > 1) {
+        dataRows = tableRows.slice(1).map((tr) => {
+          const cols = Array.from(tr.querySelectorAll('td, th'));
+          const rowDiv = document.createElement('div');
+          cols.forEach((col) => {
+            const colDiv = document.createElement('div');
+            colDiv.textContent = col.textContent.trim();
+            rowDiv.appendChild(colDiv);
+          });
+          return rowDiv;
+        });
+      }
+    }
+
+    // Strategy 3b: Check if content is in a <pre> tag (common for plain text)
+    const pre = block.querySelector('pre');
+    if (pre && rows.length === 0 && dataRows.length === 0) {
+      const preText = pre.textContent || '';
+      const lines = preText.split('\n').map((line) => line.trim()).filter((line) => line && line.includes(','));
+      if (lines.length > 1) {
+        // Convert to row structure
+        dataRows = lines.slice(1).map((line) => {
+          const values = line.split(',').map((v) => v.trim());
+          const rowDiv = document.createElement('div');
+          values.forEach((value) => {
+            const colDiv = document.createElement('div');
+            colDiv.textContent = value;
+            rowDiv.appendChild(colDiv);
+          });
+          return rowDiv;
+        });
+      }
+    }
+
+    // Parse the data rows we found
+    if (dataRows.length > 0) {
+      const heroTrack = document.createElement('div');
+      heroTrack.classList.add('hero-track');
+
+      dataRows.forEach((row) => {
+        // Try to get columns from the row
+        let cols = Array.from(row.children).filter((child) => child.tagName === 'DIV');
+        if (cols.length === 0) {
+          cols = Array.from(row.querySelectorAll(':scope > div'));
         }
-        values.push(current.trim());
-        return values;
+        // If still no cols, treat the row itself as having text content
+        if (cols.length === 0 && row.textContent) {
+          // Try parsing as CSV text
+          const rowText = row.textContent.trim();
+          if (rowText.includes(',')) {
+            const values = rowText.split(',').map((v) => v.trim());
+            if (values.length >= 8) {
+              const slideOrder = values[1] || '';
+              const title = values[2] || '';
+              const subtitle = values[3] || '';
+              const ctaLabel = values[4] || '';
+              const ctaLink = values[5] || '';
+              const bgDesktop = values[6] || '';
+              const bgMobile = values[7] || '';
+
+              const slide = createSlide(slideOrder, title, subtitle, ctaLabel, ctaLink, bgDesktop, bgMobile);
+              heroTrack.appendChild(slide);
+            }
+          }
+        } else if (cols.length >= 8) {
+          // Extract data from columns (skip first column which is "homepage-hero")
+          const slideOrder = getCellText(cols[1]);
+          const title = getCellText(cols[2]);
+          const subtitle = getCellText(cols[3]);
+          const ctaLabel = getCellText(cols[4]);
+          const ctaLink = getCellText(cols[5]);
+          const bgDesktop = getCellText(cols[6]);
+          const bgMobile = getCellText(cols[7]);
+
+          const slide = createSlide(slideOrder, title, subtitle, ctaLabel, ctaLink, bgDesktop, bgMobile);
+          heroTrack.appendChild(slide);
+        }
       });
 
-      if (csvRows.length > 0 && csvRows[0].length >= 8) {
-        const heroTrack = document.createElement('div');
-        heroTrack.classList.add('hero-track');
-
-        csvRows.forEach((row) => {
-          if (row.length >= 8) {
-            const slideOrder = row[1] || '';
-            const title = row[2] || '';
-            const subtitle = row[3] || '';
-            const ctaLabel = row[4] || '';
-            const ctaLink = row[5] || '';
-            const bgDesktop = row[6] || '';
-            const bgMobile = row[7] || '';
-
-            const slide = createSlide(slideOrder, title, subtitle, ctaLabel, ctaLink, bgDesktop, bgMobile);
-            heroTrack.appendChild(slide);
-          }
-        });
-
+      if (heroTrack.children.length > 0) {
+        // Clear block and add new structure
         block.innerHTML = '';
         block.appendChild(heroTrack);
         addControls(block);
         slides = Array.from(block.querySelectorAll('.hero-slide'));
       }
     }
-  }
 
-  if (slides.length === 0 && dataRows.length > 0) {
-    // Parse CSV-like structure from table rows
-    const heroTrack = document.createElement('div');
-    heroTrack.classList.add('hero-track');
-
-    dataRows.forEach((row) => {
-      const cols = Array.from(row.querySelectorAll(':scope > div'));
-      if (cols.length >= 8) {
-        // Extract data from columns (skip first column which is "homepage-hero")
-        const slideOrder = getCellText(cols[1]);
-        const title = getCellText(cols[2]);
-        const subtitle = getCellText(cols[3]);
-        const ctaLabel = getCellText(cols[4]);
-        const ctaLink = getCellText(cols[5]);
-        const bgDesktop = getCellText(cols[6]);
-        const bgMobile = getCellText(cols[7]);
-
-        const slide = createSlide(slideOrder, title, subtitle, ctaLabel, ctaLink, bgDesktop, bgMobile);
-        heroTrack.appendChild(slide);
+    // Strategy 4: If still no slides, try parsing as plain text CSV
+    if (slides.length === 0) {
+      // Get text content - try multiple methods
+      let blockText = block.textContent || block.innerText || '';
+      // If blockText is empty, try getting from innerHTML
+      if (!blockText || blockText.trim().length === 0) {
+        blockText = block.innerHTML || '';
+        // Remove HTML tags if any
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = blockText;
+        blockText = tempDiv.textContent || tempDiv.innerText || '';
       }
-    });
 
-    // Clear block and add new structure
-    block.innerHTML = '';
-    block.appendChild(heroTrack);
-    addControls(block);
+      const lines = blockText.split('\n').map((line) => line.trim()).filter((line) => line && line.includes(','));
+      if (lines.length > 1) {
+        // Parse CSV lines
+        const csvRows = lines.slice(1).map((line) => {
+          // Simple CSV parsing (handles quoted values)
+          const values = [];
+          let current = '';
+          let inQuotes = false;
+          for (let i = 0; i < line.length; i += 1) {
+            const char = line[i];
+            if (char === '"') {
+              inQuotes = !inQuotes;
+            } else if (char === ',' && !inQuotes) {
+              values.push(current.trim());
+              current = '';
+            } else {
+              current += char;
+            }
+          }
+          values.push(current.trim());
+          return values;
+        });
 
-    // Get slides after creating them
-    slides = Array.from(block.querySelectorAll('.hero-slide'));
+        if (csvRows.length > 0 && csvRows[0].length >= 8) {
+          const heroTrack = document.createElement('div');
+          heroTrack.classList.add('hero-track');
+
+          csvRows.forEach((row) => {
+            if (row.length >= 8) {
+              const slideOrder = row[1] || '';
+              const title = row[2] || '';
+              const subtitle = row[3] || '';
+              const ctaLabel = row[4] || '';
+              const ctaLink = row[5] || '';
+              const bgDesktop = row[6] || '';
+              const bgMobile = row[7] || '';
+
+              const slide = createSlide(slideOrder, title, subtitle, ctaLabel, ctaLink, bgDesktop, bgMobile);
+              heroTrack.appendChild(slide);
+            }
+          });
+
+          block.innerHTML = '';
+          block.appendChild(heroTrack);
+          addControls(block);
+          slides = Array.from(block.querySelectorAll('.hero-slide'));
+        }
+      }
+    }
   }
 
   if (!slides.length) return;
