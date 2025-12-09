@@ -1,10 +1,12 @@
+// homepage-hero.js - Fully ESLint clean
+
 export default function decorate(block) {
   if (!block) return;
 
   const slides = Array.from(block.querySelectorAll('.hero-slide'));
   if (!slides.length) return;
 
-  // Lazy background loading
+  // lazy background load
   slides.forEach((slide) => {
     const bgDesktop = slide.querySelector('.hero-bg--desktop');
     const bgMobile = slide.querySelector('.hero-bg--mobile');
@@ -34,12 +36,11 @@ export default function decorate(block) {
   const intervalMs = 5000;
   let timer = null;
 
-  // ---------------------------------------------------
-  // FIX: Declare dots BEFORE goTo() so ESLint passes
-  // ---------------------------------------------------
-
-  const dots = [];
+  // 🟢 FIX: Declare dots BEFORE using inside goTo()
   const dotsContainer = block.querySelector('.hero-dots');
+  const dots = [];
+
+  // ---- functions declared AFTER variables are available ----
 
   function goTo(index) {
     let idx = index;
@@ -77,7 +78,7 @@ export default function decorate(block) {
     startTimer();
   }
 
-  // Build dots AFTER declaring dots array
+  // create dots
   slides.forEach((slide, i) => {
     const btn = document.createElement('button');
     btn.setAttribute('aria-label', `Go to slide ${i + 1}`);
@@ -91,6 +92,8 @@ export default function decorate(block) {
 
   // arrow buttons
   const prevBtn = block.querySelector('.hero-nav--prev');
+  const nextBtn = block.querySelector('.hero-nav--next');
+
   if (prevBtn) {
     prevBtn.addEventListener('click', () => {
       prev();
@@ -98,7 +101,6 @@ export default function decorate(block) {
     });
   }
 
-  const nextBtn = block.querySelector('.hero-nav--next');
   if (nextBtn) {
     nextBtn.addEventListener('click', () => {
       next();
@@ -106,7 +108,7 @@ export default function decorate(block) {
     });
   }
 
-  // swipe support
+  // swipe
   let touchStartX = null;
 
   block.addEventListener('touchstart', (e) => {
@@ -127,7 +129,7 @@ export default function decorate(block) {
     restartTimer();
   });
 
-  // keyboard support
+  // keyboard
   block.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowLeft') {
       prev();
