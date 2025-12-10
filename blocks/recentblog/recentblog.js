@@ -3,7 +3,9 @@ import { createOptimizedPicture } from '../../scripts/aem.js';
 export default function decorate(block) {
   const ul = document.createElement('ul');
 
-  [...block.children].forEach((row) => {
+  const rows = [...block.children];
+
+  rows.forEach((row) => {
     const li = document.createElement('li');
     li.classList.add('recentblog-card');
 
@@ -91,17 +93,20 @@ export default function decorate(block) {
     ul.append(li);
   });
 
-  const fadeInObserver = new IntersectionObserver((entries, observer) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('recentblog-card-visible');
-        observer.unobserve(entry.target);
-      }
-    });
-  }, {
-    threshold: 0.15,
-    rootMargin: '0px 0px -80px 0px',
-  });
+  const fadeInObserver = new IntersectionObserver(
+    (entries, observer) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('recentblog-card-visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    },
+    {
+      threshold: 0.15,
+      rootMargin: '0px 0px -80px 0px',
+    },
+  );
 
   [...ul.children].forEach((card, i) => {
     card.style.setProperty('--recentblog-index', i.toString());
