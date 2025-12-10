@@ -1,21 +1,16 @@
-.section.recentblog-container {
-    padding: 80px 20px;
-    background-color: #f8f9fa;
+/* 1) Visual proof the block is targeted */
+.recentblog.block {
+    outline: 3px solid red;
   }
   
-  .recentblog-wrapper {
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-  
-  /* turn the three row <div>s into a grid */
+  /* 2) Make it a 3‑column grid */
   .recentblog.block {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 30px;
   }
   
-  /* each row div is a card */
+  /* 3) Card styling for each row div */
   .recentblog.block > div {
     background: #fff;
     border-radius: 16px;
@@ -25,12 +20,10 @@
     flex-direction: column;
   }
   
-  /* image cell */
+  /* Image cell */
   .recentblog.block > div > div:first-child {
-    width: 100%;
     height: 260px;
     overflow: hidden;
-    background: #f0f0f0;
   }
   
   .recentblog.block > div > div:first-child picture,
@@ -41,37 +34,20 @@
     object-fit: cover;
   }
   
-  /* text cell */
+  /* Text cell */
   .recentblog.block > div > div:last-child {
-    padding: 25px 20px;
-    display: flex;
-    flex-direction: column;
+    padding: 20px;
   }
   
-  .recentblog.block p:first-of-type {
-    font-size: 1.15rem;
-    line-height: 1.5;
-    color: #2d3748;
-    margin: 0 0 15px;
+  /* Title */
+  .recentblog.block > div > div:last-child p:first-of-type {
     font-weight: 700;
+    margin: 0 0 10px;
   }
   
-  .recentblog.block p:last-of-type {
-    font-size: 0.9rem;
-    color: #718096;
+  /* Meta */
+  .recentblog.block > div > div:last-child p:last-of-type {
     margin: 0;
-  }
-  
-  /* responsive */
-  @media (width <= 768px) {
-    .recentblog.block {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-  }
-  
-  @media (width <= 600px) {
-    .recentblog.block {
-      grid-template-columns: 1fr;
-    }
+    font-size: 0.9rem;
   }
   
