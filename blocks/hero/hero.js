@@ -1,58 +1,90 @@
-// homepage-hero.js - Fully ESLint clean
+// hero.js — ESLint compliant + EDS compatible
 
 export default function decorate(block) {
   if (!block) return;
 
-  const slides = Array.from(block.querySelectorAll('.hero-slide'));
-  if (!slides.length) return;
+  // Extract rows from default Google Docs table
+  const rows = [...block.children];
 
-  // lazy background load
-  slides.forEach((slide) => {
+  // Build clean hero wrapper structure
+  block.innerHTML = `
+    <div class='hero-wrapper'>
+      <div class='hero-slides'></div>
+      <div class='hero-nav'>
+        <button class='hero-nav--prev' aria-label='Previous'>&#10094;</button>
+        <button class='hero-nav--next' aria-label='Next'>&#10095;</button>
+      </div>
+      <div class='hero-dots'></div>
+    </div>
+  `;
+
+  const slidesContainer = block.querySelector('.hero-slides');
+  const dotsContainer = block.querySelector('.hero-dots');
+
+  const slides = [];
+
+  // Convert table → slides
+  rows.forEach((row) => {
+    const cols = [...row.children];
+
+    const desktop = cols[0]?.textContent?.trim() || '';
+    const mobile = cols[1]?.textContent?.trim() || '';
+    const title = cols[2]?.textContent?.trim() || '';
+    const subtitle = cols[3]?.textContent?.trim() || '';
+
+    const slide = document.createElement('div');
+    slide.classList.add('hero-slide');
+
+    slide.innerHTML = `
+      <div class='hero-bg hero-bg--desktop'></div>
+      <div class='hero-bg hero-bg--mobile'></div>
+      <div class='hero-content'>
+        <h2>${title}</h2>
+        <p>${subtitle}</p>
+      </div>
+    `;
+
+    // Lazy load background images
     const bgDesktop = slide.querySelector('.hero-bg--desktop');
     const bgMobile = slide.querySelector('.hero-bg--mobile');
 
-    const desktopSrc = bgDesktop?.dataset.bgDesktop;
-    const mobileSrc = bgMobile?.dataset.bgMobile;
-
-    if (desktopSrc) {
+    if (desktop) {
       const img = new Image();
-      img.src = desktopSrc;
+      img.src = desktop;
       img.onload = () => {
-        bgDesktop.style.backgroundImage = `url("${desktopSrc}")`;
+        bgDesktop.style.backgroundImage = `url('${desktop}')`;
       };
     }
 
-    if (mobileSrc) {
+    if (mobile) {
       const imgM = new Image();
-      imgM.src = mobileSrc;
+      imgM.src = mobile;
       imgM.onload = () => {
-        bgMobile.style.backgroundImage = `url("${mobileSrc}")`;
+        bgMobile.style.backgroundImage = `url('${mobile}')`;
       };
     }
+
+    slidesContainer.append(slide);
+    slides.push(slide);
   });
+
+  // ----- Carousel Logic -----
 
   let current = 0;
   const total = slides.length;
-  const intervalMs = 5000;
+  const dots = [];
   let timer = null;
 
-  // 🟢 FIX: Declare dots BEFORE using inside goTo()
-  const dotsContainer = block.querySelector('.hero-dots');
-  const dots = [];
-
-  // ---- functions declared AFTER variables are available ----
-
-  function goTo(index) {
-    let idx = index;
-    if (idx < 0) idx = total - 1;
-    if (idx >= total) idx = 0;
+  function goTo(n) {
+    current = (n + total) % total;
 
     slides.forEach((slide, i) => {
-      slide.classList.toggle('is-active', i === idx);
-      dots[i].classList.toggle('is-active', i === idx);
+      slide.classList.toggle('is-active', i === current);
     });
 
-    current = idx;
+    dots.forEach((dot, i) => {
+      dot.classList.toggle('is-active', i === current);
+    });
   }
 
   function next() {
@@ -63,61 +95,54 @@ export default function decorate(block) {
     goTo(current - 1);
   }
 
-  function stopTimer() {
+  function startAuto() {
+    timer = setInterval(next, 5000);
+  }
+
+  function stopAuto() {
     if (timer) clearInterval(timer);
-    timer = null;
   }
 
-  function startTimer() {
-    stopTimer();
-    timer = setInterval(() => next(), intervalMs);
-  }
-
-  function restartTimer() {
-    stopTimer();
-    startTimer();
-  }
-
-  // create dots
-  slides.forEach((slide, i) => {
+  // Create dots for each slide
+  slides.forEach((_, i) => {
     const btn = document.createElement('button');
     btn.setAttribute('aria-label', `Go to slide ${i + 1}`);
+
     btn.addEventListener('click', () => {
       goTo(i);
-      restartTimer();
+      stopAuto();
+      startAuto();
     });
+
     dotsContainer.append(btn);
     dots.push(btn);
   });
 
-  // arrow buttons
+  // Navigation buttons
   const prevBtn = block.querySelector('.hero-nav--prev');
   const nextBtn = block.querySelector('.hero-nav--next');
 
-  if (prevBtn) {
-    prevBtn.addEventListener('click', () => {
-      prev();
-      restartTimer();
-    });
-  }
+  prevBtn.addEventListener('click', () => {
+    prev();
+    stopAuto();
+    startAuto();
+  });
 
-  if (nextBtn) {
-    nextBtn.addEventListener('click', () => {
-      next();
-      restartTimer();
-    });
-  }
+  nextBtn.addEventListener('click', () => {
+    next();
+    stopAuto();
+    startAuto();
+  });
 
-  // swipe
+  // Swipe support
   let touchStartX = null;
 
   block.addEventListener('touchstart', (e) => {
     touchStartX = e.touches[0].clientX;
-    stopTimer();
+    stopAuto();
   });
 
   block.addEventListener('touchend', (e) => {
-    if (touchStartX === null) return;
     const diff = e.changedTouches[0].clientX - touchStartX;
 
     if (Math.abs(diff) > 40) {
@@ -126,24 +151,17 @@ export default function decorate(block) {
     }
 
     touchStartX = null;
-    restartTimer();
+    startAuto();
   });
 
-  // keyboard
+  // Keyboard navigation
   block.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowLeft') {
-      prev();
-      restartTimer();
-    }
-    if (e.key === 'ArrowRight') {
-      next();
-      restartTimer();
-    }
+    if (e.key === 'ArrowLeft') prev();
+    if (e.key === 'ArrowRight') next();
   });
 
-  // init
-  goTo(0);
-  startTimer();
-
+  // Init
   block.tabIndex = 0;
+  goTo(0);
+  startAuto();
 }

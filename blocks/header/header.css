@@ -1,23 +1,139 @@
-.header {
+/* Notification Banner Block - Lycamobile Style */
+
+.notification-banner {
+  width: 100%;
+  position: relative;
+}
+
+.notification-banner-container {
+  background: linear-gradient(90deg, #fef3c7 0%, #fde68a 100%);
+  border-bottom: 1px solid #f59e0b;
+  padding: 0;
+  opacity: 0;
+  transform: translateY(-100%);
+  transition: all 0.3s ease;
+}
+
+.notification-banner-container.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.notification-banner-container.dismissed {
+  opacity: 0;
+  transform: translateY(-100%);
+}
+
+.notification-banner-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 14px 60px 14px 20px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 20px;
-  background: #fff;
-  border-bottom: 1px solid #eee;
+  justify-content: center;
+  position: relative;
+  gap: 12px;
 }
 
-.header .logo img {
-  height: 40px;
-}
-
-.header .nav {
-  display: flex;
-  gap: 20px;
-}
-
-.header .nav a {
-  text-decoration: none;
-  color: #333;
+.notification-banner-message {
+  text-align: center;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #78350f;
   font-weight: 500;
+}
+
+.notification-banner-text {
+  color: #78350f;
+}
+
+.notification-banner-link {
+  color: #06c;
+  text-decoration: underline;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.notification-banner-link:hover {
+  color: #0052a3;
+  text-decoration: none;
+}
+
+/* Close Button */
+.notification-banner-close {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #78350f;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  width: 32px;
+  height: 32px;
+}
+
+.notification-banner-close:hover {
+  background: rgb(120 53 15 / 10%);
+  color: #451a03;
+}
+
+.notification-banner-close:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+.notification-banner-close svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Responsive Design */
+@media (width <=768px) {
+  .notification-banner-content {
+    padding: 12px 50px 12px 16px;
+  }
+
+  .notification-banner-message {
+    font-size: 14px;
+    text-align: left;
+  }
+
+  .notification-banner-close {
+    right: 12px;
+    width: 28px;
+    height: 28px;
+  }
+
+  .notification-banner-close svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+@media (width <=480px) {
+  .notification-banner-content {
+    padding: 10px 45px 10px 12px;
+  }
+
+  .notification-banner-message {
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  .notification-banner-close {
+    right: 8px;
+  }
+}
+
+/* Print styles - hide notification banner when printing */
+@media print {
+  .notification-banner {
+    display: none;
+  }
 }
