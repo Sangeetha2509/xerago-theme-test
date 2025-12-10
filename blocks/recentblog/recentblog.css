@@ -14,7 +14,7 @@
   }
   
   .block.recentblog .recentblog-card {
-    background: #ffffff;
+    background: #fff;
     border-radius: 16px;
     overflow: hidden;
     cursor: pointer;
@@ -45,7 +45,7 @@
   }
   
   .block.recentblog .recentblog-card:focus {
-    outline: 3px solid #0066cc;
+    outline: 3px solid #06c;
     outline-offset: 4px;
   }
   
@@ -96,7 +96,7 @@
   }
   
   .block.recentblog .recentblog-card:hover .recentblog-title {
-    color: #0066cc;
+    color: #06c;
     transition: color 0.3s ease;
   }
   
