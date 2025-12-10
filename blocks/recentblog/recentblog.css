@@ -1,16 +1,12 @@
-/* 1) Visual proof the block is targeted */
+/* Block container */
 .recentblog.block {
-    outline: 3px solid red;
-  }
-  
-  /* 2) Make it a 3‑column grid */
-  .recentblog.block {
+    outline: 3px solid red; /* temporary debug: you should see a red box */
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 30px;
   }
   
-  /* 3) Card styling for each row div */
+  /* Each row div = one card */
   .recentblog.block > div {
     background: #fff;
     border-radius: 16px;
